@@ -50,6 +50,24 @@ typedef int bool;
 #define LIST_POISON1  ((void *) 0x00100100)
 #define LIST_POISON2  ((void *) 0x00200200)
 
+void *
+debug_malloc(size_t size, const char *file, int line, const char *func)
+{
+        void *p;
+ 
+        p = malloc(size);
+        printf("%s:%d:%s:malloc(%ld): p=0x%lx\n",
+            file, line, func, size, (unsigned long)p);
+        return p;
+}
+ 
+#define malloc(s) debug_malloc(s, __FILE__, __LINE__, __func__)
+#define free(p)  do {                                                   \
+        printf("%s:%d:%s:free(0x%lx)\n", __FILE__, __LINE__,            \
+            __func__, (unsigned long)p);                                \
+        free(p);                                                        \
+} while (0)
+
 /*
  * Simple doubly linked list implementation.
  *
@@ -616,6 +634,7 @@ static int proxy_conn_key_cmp_fn(struct h_cache *he, void *key)
 static void proxy_conn_release_fn(struct h_cache *he)
 {
 	struct proxy_conn *conn = container_of(he, struct proxy_conn, h_cache);
+	printf("proxy_conn_release_fn is execute\n");	
 	release_proxy_conn(conn, NULL, 0);
 }
 
@@ -689,10 +708,13 @@ static inline void release_proxy_conn(struct proxy_conn *conn,
 		}
 	}
 	
-	if (conn->svr_sock >= 0)
+	if (conn->svr_sock >= 0) {
 		close(conn->svr_sock);
+		return;
+	}
 	
 	free(conn);
+	conn = NULL;
 }
 
 static struct proxy_conn *new_connection(int lsn_sock, int epfd,
@@ -1001,6 +1023,7 @@ int main(int argc, char *argv[])
 				if ((rlen = recv(conn->svr_sock, buffer, sizeof(buffer), 0))
 					<= 0) {
 					/* Close the session. */
+					printf("close the session\n");	
 					release_proxy_conn(conn, events + i + 1, nfds - 1 - i);
 					continue;
 				}
