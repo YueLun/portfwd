@@ -229,6 +229,7 @@ static inline void release_proxy_conn(struct proxy_conn *conn,
 		close(conn->cli_sock);
 	if (conn->svr_sock >= 0){
 		close(conn->svr_sock);
+		return;
 	}
 	
 	if (conn->request.buf)
