@@ -227,8 +227,9 @@ static inline void release_proxy_conn(struct proxy_conn *conn,
 	
 	if (conn->cli_sock >= 0)
 		close(conn->cli_sock);
-	if (conn->svr_sock >= 0)
+	if (conn->svr_sock >= 0){
 		close(conn->svr_sock);
+	}
 	
 	if (conn->request.buf)
 		free(conn->request.buf);
@@ -236,6 +237,7 @@ static inline void release_proxy_conn(struct proxy_conn *conn,
 		free(conn->response.buf);
 	
 	free(conn);
+	conn = NULL;
 }
 
 /**
@@ -716,4 +718,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-
