@@ -310,7 +310,7 @@ static struct proxy_conn *accept_and_connect(int lsn_sock, int *error)
 	socklen_t cli_alen = sizeof(cli_addr);
 	struct proxy_conn *conn;
 	char s1[44] = ""; int n1 = 0;
-
+	int iNodelay = 1;
 	cli_sock = accept(lsn_sock, (struct sockaddr *)&cli_addr, &cli_alen);
 	if (cli_sock < 0) {
 		/* FIXME: error indicated, need to exit? */
@@ -327,6 +327,7 @@ static struct proxy_conn *accept_and_connect(int lsn_sock, int *error)
 	}
 	conn->cli_sock = cli_sock;
 	set_nonblock(conn->cli_sock);
+	setsockopt(conn->cli_sock, IPPROTO_TCP, TCP_NODELAY, iNodelay, sizeof(iNodelay));
 	conn->cli_addr = cli_addr;
 	
 	/* Initiate the connection to server right now. */
@@ -341,7 +342,7 @@ static struct proxy_conn *accept_and_connect(int lsn_sock, int *error)
 	}
 	conn->svr_sock = svr_sock;
 	set_nonblock(conn->svr_sock);
-	
+	setsockopt(conn->svr_sock, IPPROTO_TCP, TCP_NODELAY, iNodelay, sizeof(iNodelay));
 	/* Connect to real server. */
 	conn->svr_addr = g_dst_sockaddr;
 
